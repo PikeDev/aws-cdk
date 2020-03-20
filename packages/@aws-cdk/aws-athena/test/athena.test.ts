@@ -1,6 +1,55 @@
-import '@aws-cdk/assert/jest';
-import {} from '../lib';
+import { expect, haveResource } from '@aws-cdk/assert';
+import * as s3 from '@aws-cdk/aws-s3';
+import * as cdk from '@aws-cdk/core';
+import { ResultEncryptionOption, WorkGroup } from '../lib';
 
-test('No tests are specified for this package', () => {
-  expect(true).toBe(true);
+test('Create a basic workgroup', () => {
+  // GIVEN
+  const stack = new cdk.Stack();
+  const bucket = new s3.Bucket(stack, "Bucket");
+
+  // WHEN
+  new WorkGroup(stack, 'WorkGroup', {
+    name: 'hello',
+    description: 'world',
+    enabled: true,
+    recursiveDeleteOption: true,
+    resultOutputLocation: bucket,
+    enforceWorkGroupConfiguration: true,
+    publishCloudWatchMetricsEnabled: true,
+    requesterPaysEnabled: true,
+    bytesScannedCutoffPerQuery: 1000,
+    resultEncryptionOption: ResultEncryptionOption.SSE_S3
+  });
+
+  // THEN
+  expect(stack).to(haveResource("AWS::Athena::WorkGroup", {
+    Name: "hello",
+    Description: "world",
+    RecursiveDeleteOption: true,
+    State: "ENABLED",
+    WorkGroupConfiguration: {
+      BytesScannedCutoffPerQuery: 1000,
+      EnforceWorkGroupConfiguration: true,
+      PublishCloudWatchMetricsEnabled: true,
+      RequesterPaysEnabled: true,
+      ResultConfiguration: {
+        EncryptionConfiguration: {
+          EncryptionOption: "SSE_S3"
+        },
+        OutputLocation: {
+          "Fn::Join": [
+            "",
+            [
+              "s3://",
+              {
+                Ref: "Bucket83908E77"
+              },
+              "/"
+            ]
+          ]
+        }
+      }
+    }
+  }));
 });

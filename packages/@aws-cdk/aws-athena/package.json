@@ -100,6 +100,11 @@
   "engines": {
     "node": ">= 10.3.0"
   },
+  "awslint": {
+    "exclude": [
+      "props-physical-name:@aws-cdk/aws-athena.WorkGroupProps"
+    ]
+  },
   "stability": "experimental",
   "awscdkio": {
     "announce": false
