@@ -1,7 +1,7 @@
 import { expect, haveResource } from '@aws-cdk/assert';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as cdk from '@aws-cdk/core';
-import { ResultEncryptionOption, WorkGroup } from '../lib';
+import { Database, ResultEncryptionOption, WorkGroup } from '../lib';
 
 test('Create a basic workgroup', () => {
   // GIVEN
@@ -51,5 +51,22 @@ test('Create a basic workgroup', () => {
         }
       }
     }
+  }));
+});
+
+test('Create a database', () => {
+  // GIVEN
+  const stack = new cdk.Stack();
+
+  // WHEN
+  new Database(stack, 'Database', {
+    name: 'hello',
+  });
+
+  // THEN
+  expect(stack).to(haveResource("Custom::AthenaDatabase", {
+    CreateQueryString: "CREATE DATABASE IF NOT EXISTS hello",
+    UpdateQueryString: "CREATE DATABASE IF NOT EXISTS hello",
+    DeleteQueryString: "DROP DATABASE IF EXISTS hello CASCADE"
   }));
 });

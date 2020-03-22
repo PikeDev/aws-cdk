@@ -17,3 +17,111 @@ export enum ResultEncryptionOption {
      */
     SSE_S3 = 'SSE_S3'
 }
+
+/**
+ * Specifies the row format of the table and its underlying source data if applicable.
+ */
+export class RowFormat {
+  /**
+   * Create a custom row format by specifying the delimiters to be used
+   *
+   * @param fieldDelimiter The field delimiter. Default: ,
+   * @param escapeCharacter The field escape character. Default: None
+   * @param lineTerminator The line terminator. Default: None
+   * @param mapKeyTerminator The map key terminator: Default: None
+   */
+  public static delimiters(fieldDelimiter?: string, escapeCharacter?: string, lineTerminator?: string, mapKeyTerminator?: string): RowFormat {
+    let statement: string = `DELIMITED FIELDS TERMINATED BY '${fieldDelimiter ? fieldDelimiter : ','}'`;
+    if (escapeCharacter) {
+      statement += ` ESCAPED BY '${escapeCharacter}'`;
+    }
+    if (mapKeyTerminator) {
+      statement += `\nMAP KEYS TERMINATED BY '${mapKeyTerminator}'`;
+    }
+    if (lineTerminator) {
+      statement += `\nLINES TERMINATED BY '${lineTerminator}'`;
+    }
+    return new RowFormat(statement);
+  }
+
+  /**
+   * Create a custom row format by specifying the SerDe to be used
+   *
+   * @param serdeName Indicates the SerDe to use
+   * @param serdeProperties Allows you to provide one or more custom properties allowed by the SerDe
+   */
+  public static serde(serdeName: string, serdeProperties?: Array<[string, string]>): RowFormat {
+    let statement: string = `SERDE ${serdeName}`;
+    if (serdeProperties && serdeProperties.length > 0) {
+      statement += ` WITH SERDEPROPERTIES (${serdeProperties.map(serdeProperty => {
+        return `'${serdeProperty[0] = '${serdeProperty[1]}'}'`;
+      }).join(',')})`;
+    }
+    return new RowFormat(statement);
+  }
+
+  /**
+   * The statement to be used in the table creation query.
+   */
+  public readonly statement: string;
+
+  private constructor(statement: string) {
+    this.statement = statement;
+  }
+}
+
+/**
+ * Specifies the file format for table data
+ */
+export class FileFormat {
+  /**
+   * SEQUENCEFILE
+   */
+  public static readonly SEQUENCEFILE  = new FileFormat('SEQUENCEFILE');
+
+  /**
+   * TEXTFILE
+   */
+  public static readonly TEXTFILE  = new FileFormat('TEXTFILE');
+
+  /**
+   * RCFILE
+   */
+  public static readonly RCFILE  = new FileFormat('RCFILE');
+
+  /**
+   * ORC
+   */
+  public static readonly ORC  = new FileFormat('ORC');
+
+  /**
+   * PARQUET
+   */
+  public static readonly PARQUET  = new FileFormat('PARQUET');
+
+  /**
+   * AVRO
+   */
+  public static readonly AVRO  = new FileFormat('AVRO');
+
+  /**
+   * Create a custom file format by specifying the input and output format class names
+   * Will produce the following statement:
+   * INPUTFORMAT `inputFormatClassName` OUTPUTFORMAT `outputFormatClassName`
+   *
+   * @param inputFormatClassName Input format class name
+   * @param outputFormatClassName Output format class name
+   */
+  public static fromClassNames(inputFormatClassName: string, outputFormatClassName: string): FileFormat {
+    return new FileFormat(`INPUTFORMAT '${inputFormatClassName}' OUTPUTFORMAT '${outputFormatClassName}'`);
+  }
+
+  /**
+   * The statement to be used in the table creation query.
+   */
+  public readonly statement: string;
+
+  private constructor(statement: string) {
+    this.statement = statement;
+  }
+}
