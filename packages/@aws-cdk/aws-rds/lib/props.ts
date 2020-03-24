@@ -35,7 +35,7 @@ export class DatabaseClusterEngine {
     this.name = name;
     this.singleUserRotationApplication = singleUserRotationApplication;
     this.multiUserRotationApplication = multiUserRotationApplication;
-  }
+cd ..  }
 }
 
 /**

@@ -2,4 +2,4 @@
 export * from './athena.generated';
 export * from './work-group';
 export * from './props';
-export * from './database';
+export * from './options';

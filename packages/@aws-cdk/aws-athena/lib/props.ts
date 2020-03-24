@@ -33,13 +33,13 @@ export class RowFormat {
   public static delimiters(fieldDelimiter?: string, escapeCharacter?: string, lineTerminator?: string, mapKeyTerminator?: string): RowFormat {
     let statement: string = `DELIMITED FIELDS TERMINATED BY '${fieldDelimiter ? fieldDelimiter : ','}'`;
     if (escapeCharacter) {
-      statement += ` ESCAPED BY '${escapeCharacter}'`;
+      statement += ` ESCAPED BY '${RowFormat.escapeSpecialCharacters(escapeCharacter)}'`;
     }
     if (mapKeyTerminator) {
-      statement += `\nMAP KEYS TERMINATED BY '${mapKeyTerminator}'`;
+      statement += `\nMAP KEYS TERMINATED BY '${RowFormat.escapeSpecialCharacters(mapKeyTerminator)}'`;
     }
     if (lineTerminator) {
-      statement += `\nLINES TERMINATED BY '${lineTerminator}'`;
+      statement += `\nLINES TERMINATED BY '${RowFormat.escapeSpecialCharacters(lineTerminator)}'`;
     }
     return new RowFormat(statement);
   }
@@ -58,6 +58,14 @@ export class RowFormat {
       }).join(',')})`;
     }
     return new RowFormat(statement);
+  }
+
+  private static escapeSpecialCharacters(character: string): string {
+    const specialCharacters: string[] = [';', '\\', '\''];
+    if (specialCharacters.find(x => x === character)) {
+      return `\\${character}`;
+    }
+    return character;
   }
 
   /**
