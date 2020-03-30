@@ -51,21 +51,25 @@ export class RowFormat {
    * @param serdeProperties Allows you to provide one or more custom properties allowed by the SerDe
    */
   public static serde(serdeName: string, serdeProperties?: Array<[string, string]>): RowFormat {
-    let statement: string = `SERDE ${serdeName}`;
+    let statement: string = `SERDE '${serdeName}'`;
     if (serdeProperties && serdeProperties.length > 0) {
       statement += ` WITH SERDEPROPERTIES (${serdeProperties.map(serdeProperty => {
-        return `'${serdeProperty[0] = '${serdeProperty[1]}'}'`;
+        return `\"${serdeProperty[0]}\" = \"${this.escapeSpecialCharacters(serdeProperty[1])}\"`;
       }).join(',')})`;
     }
     return new RowFormat(statement);
   }
 
-  private static escapeSpecialCharacters(character: string): string {
+  private static escapeSpecialCharacters(characters: string): string {
+    let escapedCharacters = '';
     const specialCharacters: string[] = [';', '\\', '\''];
-    if (specialCharacters.find(x => x === character)) {
-      return `\\${character}`;
+    for (const character of characters) {
+      if (specialCharacters.find(x => x === character)) {
+        escapedCharacters += '\\';
+      }
+      escapedCharacters += character;
     }
-    return character;
+    return escapedCharacters;
   }
 
   /**

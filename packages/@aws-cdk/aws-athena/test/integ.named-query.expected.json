@@ -1,0 +1,11 @@
+{
+  "Resources": {
+    "NamedQuery0DC5DF2A": {
+      "Type": "AWS::Athena::NamedQuery",
+      "Properties": {
+        "Database": "hello",
+        "QueryString": "SELECT * FROM World;"
+      }
+    }
+  }
+}

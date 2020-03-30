@@ -3,7 +3,7 @@ import * as cdk from '@aws-cdk/core';
 import { FileFormat, RowFormat, WorkGroup } from '../lib';
 
 const app = new cdk.App();
-const stack = new cdk.Stack(app, 'aws-cdk-athena-database');
+const stack = new cdk.Stack(app, 'aws-cdk-athena-work-group');
 
 const bucket = new s3.Bucket(stack, 'Bucket');
 

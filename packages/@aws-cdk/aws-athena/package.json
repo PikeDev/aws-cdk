@@ -111,7 +111,8 @@
   },
   "awslint": {
     "exclude": [
-      "props-physical-name:@aws-cdk/aws-athena.WorkGroupProps"
+      "props-physical-name:@aws-cdk/aws-athena.WorkGroupProps",
+      "props-physical-name:@aws-cdk/aws-athena.NamedQueryProps"
     ]
   },
   "stability": "experimental",

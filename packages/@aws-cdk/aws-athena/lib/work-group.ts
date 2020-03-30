@@ -3,7 +3,7 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
-import { Construct, IResource, Resource, Stack } from '@aws-cdk/core';
+import { CfnResource, Construct, IResource, Resource, Stack } from '@aws-cdk/core';
 import * as cr from '@aws-cdk/custom-resources';
 import { CfnWorkGroup } from './athena.generated';
 import { DatabaseOptions, TableOptions } from './options';
@@ -27,8 +27,10 @@ export interface WorkGroupProps {
 
   /**
    * The option to delete the workgroup and its contents even if the workgroup contains any named queries.
+   *
+   * @default True
    */
-  readonly recursiveDeleteOption: boolean;
+  readonly recursiveDeleteOption?: boolean;
 
   /**
    * Whether the workgroup is enabled or not
@@ -132,10 +134,10 @@ export class WorkGroup extends Resource implements IWorkGroup {
 
     this.name = props.name;
 
-    const workgroup = new CfnWorkGroup(this, 'WorkGroup', {
+    const workGroup = new CfnWorkGroup(this, 'WorkGroup', {
       name: props.name,
       description: props.description,
-      recursiveDeleteOption: props.recursiveDeleteOption,
+      recursiveDeleteOption: props.recursiveDeleteOption && props.recursiveDeleteOption,
       state: (props.enabled ?? true) ? 'ENABLED' : 'DISABLED',
       workGroupConfiguration: {
         bytesScannedCutoffPerQuery: props.bytesScannedCutoffPerQuery,
@@ -157,13 +159,14 @@ export class WorkGroup extends Resource implements IWorkGroup {
     if (props.databases) {
       props.databases.forEach(databaseOptions => {
         new Database(this, `Database${databaseOptions.name}`, {
+          workGroupResource: workGroup,
           workGroupName: this.name,
           options: databaseOptions
         });
       });
     }
 
-    this.creationTime = workgroup.attrCreationTime;
+    this.creationTime = workGroup.attrCreationTime;
   }
 }
 
@@ -171,6 +174,13 @@ export class WorkGroup extends Resource implements IWorkGroup {
  * Properties for a new Athena database
  */
 interface DatabaseProps {
+  /**
+   * The reference to the workgroup this database is in
+   *
+   * @default - None
+   */
+  readonly workGroupResource: CfnResource;
+
   /**
    * The name of the workgroup this database is in
    *
@@ -204,7 +214,7 @@ class Database extends Construct {
     const createQueryString = `CREATE DATABASE IF NOT EXISTS ${props.options.name}`;
     const deleteQueryString = `DROP DATABASE IF EXISTS ${props.options.name} CASCADE`;
 
-    new cfn.CustomResource(this, 'Resource', {
+    const database = new cfn.CustomResource(this, 'Resource', {
       provider: QueryProvider.getOrCreate(this),
       resourceType: 'Custom::AthenaDatabase',
       properties: {
@@ -214,6 +224,8 @@ class Database extends Construct {
         WorkGroup: props.workGroupName
       }
     });
+
+    database.addDependsOn(props.workGroupResource);
 
     if (props.options.tables) {
       props.options.tables.forEach(tableOptions => {
@@ -363,6 +375,8 @@ def on_event(event, context):
             queryString = event['ResourceProperties']['UpdateQueryString']
         elif request_type == 'Delete':
             queryString = event['ResourceProperties']['DeleteQueryString']
+
+        print(queryString)
 
         workGroup = event['ResourceProperties']['WorkGroup']
 

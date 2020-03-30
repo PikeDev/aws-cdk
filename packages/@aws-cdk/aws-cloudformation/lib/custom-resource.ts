@@ -204,6 +204,14 @@ export class CustomResource extends Resource {
   public getAttString(attributeName: string): string {
     return Token.asString(this.getAtt(attributeName));
   }
+
+  /**
+   * Indicates that this resource depends on another resource and cannot be
+   * provisioned unless the other resource has been successfully provisioned.
+   */
+  public addDependsOn(target: CfnResource) {
+    this.resource.addDependsOn(target);
+  }
 }
 
 /**
